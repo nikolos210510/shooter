@@ -23,6 +23,7 @@ class Player(pg.sprite.Sprite):
         self.state_idx = 1
         self.shield_active = False
         self.shield_frame = 0
+        self.health = 100
 
         self.speed = 8
         self.shield_speed = 0.2
@@ -68,6 +69,9 @@ class Player(pg.sprite.Sprite):
         self.shield_active = not self.shield_active
         if self.shield_active:
             self.shield_frame = 0
+
+    def death(self):
+        pass
 
 
 

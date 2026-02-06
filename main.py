@@ -29,7 +29,7 @@ class Game:
         self.asset_manager = Asset_manager('player_sprite.png')
         self.player = Player(self.win_w // 2, self.win_h - 300, self.asset_manager.data)
 
-        self.all_sprite = pg.sprite.Group()
+        self.all_enemies = pg.sprite.Group()
 
         self.enemy_bullet_group = pg.sprite.Group()
 
@@ -38,7 +38,7 @@ class Game:
         self.hud.draw(self.score, self.time, self.ammo, self.cur_weapon, self.weapon_energy)
         self.screen.blit(self.hud.surface, (0, 0))
 
-        self.all_sprite.draw(self.screen)
+        self.all_enemies.draw(self.screen)
         self.screen.blit(self.player.image, (self.player.rect.x, self.player.rect.y))
         self.enemy_bullet_group.draw(self.screen)
 
@@ -49,12 +49,29 @@ class Game:
         new_enemy_elite = Enemy_Soldier('enemy2.png', 180, 180, self.win_w//2, 0, self.game_rect.right, self.game_rect.left, 2000, self.enemy_bullet_group)
         new_enemy_fat =  Enemy('enemy5.png', 128, 128, self.win_w//2+200, -100, self.win_h, 2/3, 1.5, 2 )
         new_enemy_agile =  Enemy('enemy6.png', 128, 128, self.win_w//2-200, -100, self.win_h, 1.5, 2/3, 2/3 )
-        self.all_sprite.add(new_enemy_common)
-        self.all_sprite.add(new_enemy_elite)
-        self.all_sprite.add(new_enemy_fat)
-        self.all_sprite.add(new_enemy_agile)
-        
+        self.all_enemies.add(new_enemy_common)
+        self.all_enemies.add(new_enemy_elite)
+        self.all_enemies.add(new_enemy_fat)
+        self.all_enemies.add(new_enemy_agile)
 
+    def collide_manager(self):
+        collided_bullets = pg.sprite.spritecollide(self.player, self.enemy_bullet_group, True)
+        if not self.player.shield_active:
+            if collided_bullets:
+                for bullet in collided_bullets:                    
+                    self.player.health -= bullet.dmg
+                    print(self.player.health)
+                    if self.player.health <= 0:
+                        print('death')
+                        self.runnig = False
+
+        if pg.sprite.spritecollide(self.player, self.all_enemies, True):
+            if self.player.shield_active:
+                self.player.shield_active = False
+            else:
+                self.runnig = False
+
+        
     def run(self):
         game.spawn_enemy()
 
@@ -67,9 +84,10 @@ class Game:
                     if event.key == pg.K_x:
                         self.player.toggle_shield()
 
-            self.all_sprite.update()
+            self.all_enemies.update()
             self.enemy_bullet_group.update()
             self.player.update()
+            self.collide_manager()
 
             
 

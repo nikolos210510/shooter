@@ -57,9 +57,8 @@ class Enemy_Soldier(Enemy):
         
 
     def fire(self):
-        bullet = Bullet(self.rect.x, self.rect.y, 10, 30 ,30, 5, 1)
+        bullet = Bullet(self.rect.centerx, self.rect.bottom, 10, 30 ,30, 34, 1)
         self.bullet_group.add(bullet)
-        print('ok')
         
 
     def update(self):
