@@ -2,6 +2,7 @@ import pygame as pg
 from ui import HUD
 from asset import Asset_manager, Player
 from enemy import Enemy, Enemy_Soldier
+from random import *
 
 
 
@@ -18,8 +19,8 @@ class Game:
         self.hud_area_w = self.win_w * 0.15
         self.hud = HUD(self.hud_area_w, self.win_h)
         self.game_rect = pg.Rect(self.hud_area_w, 0, self.game_area_w, self.win_h)
-
-        self.time = 0
+        
+        self.main_timer = 0
         self.score = 0
 
         self.ammo = 30
@@ -30,12 +31,16 @@ class Game:
         self.player = Player(self.win_w // 2, self.win_h - 300, self.asset_manager.data)
 
         self.all_enemies = pg.sprite.Group()
-
         self.enemy_bullet_group = pg.sprite.Group()
+
+        self.spawn_delay = 1000
+        self.last_summonig = pg.time.get_ticks()
+        self.start_game_time = pg.time.get_ticks()
+        self.is_game_active = True
 
     def draw(self):
         pg.draw.rect(self.screen, (0, 0, 0), self.game_rect) 
-        self.hud.draw(self.score, self.time, self.ammo, self.cur_weapon, self.weapon_energy)
+        self.hud.draw(self.score, round(self.main_timer/1000, 2), self.ammo, self.cur_weapon, self.weapon_energy)
         self.screen.blit(self.hud.surface, (0, 0))
 
         self.all_enemies.draw(self.screen)
@@ -44,15 +49,24 @@ class Game:
 
         pg.display.flip()
 
+    def choose_enemy(self):
+        self.enemy_spawn_area_x = randint(int(self.hud_area_w), int(self.game_area_w))
+        chance = randint(0,100)
+        if chance <= 30 or chance > 80:
+            return Enemy('enemy4.png', 128, 128, self.enemy_spawn_area_x, -200, self.win_h)  #есть ли смысл создание самх врагов в свойства вносить?
+        elif 40 > chance >= 30:
+            return Enemy('enemy5.png', 128, 128, self.enemy_spawn_area_x, -200, self.win_h, 2/3, 1.5, 2 )
+        elif 70 > chance >= 40:
+            return Enemy('enemy6.png', 128, 128, self.enemy_spawn_area_x, -200, self.win_h, 1.5, 2/3, 2/3 )
+        elif 80 >= chance >= 70:
+            return Enemy_Soldier('enemy2.png', 180, 180, self.win_w//2, 0, self.game_rect.right, self.game_rect.left, 2000, self.enemy_bullet_group)
+
     def spawn_enemy(self):
-        new_enemy_common = Enemy('enemy4.png', 128, 128, self.win_w//2, -100, self.win_h)
-        new_enemy_elite = Enemy_Soldier('enemy2.png', 180, 180, self.win_w//2, 0, self.game_rect.right, self.game_rect.left, 2000, self.enemy_bullet_group)
-        new_enemy_fat =  Enemy('enemy5.png', 128, 128, self.win_w//2+200, -100, self.win_h, 2/3, 1.5, 2 )
-        new_enemy_agile =  Enemy('enemy6.png', 128, 128, self.win_w//2-200, -100, self.win_h, 1.5, 2/3, 2/3 )
-        self.all_enemies.add(new_enemy_common)
-        self.all_enemies.add(new_enemy_elite)
-        self.all_enemies.add(new_enemy_fat)
-        self.all_enemies.add(new_enemy_agile)
+        now = pg.time.get_ticks()    
+        if now - self.last_summonig >= self.spawn_delay:
+            new_enemy = self.choose_enemy()
+            self.all_enemies.add(new_enemy)
+            self.last_summonig = now
 
     def collide_manager(self):
         collided_bullets = pg.sprite.spritecollide(self.player, self.enemy_bullet_group, True)
@@ -63,17 +77,16 @@ class Game:
                     print(self.player.health)
                     if self.player.health <= 0:
                         print('death')
-                        self.runnig = False
+                        self.is_game_active = False
 
         if pg.sprite.spritecollide(self.player, self.all_enemies, True):
             if self.player.shield_active:
                 self.player.shield_active = False
             else:
-                self.runnig = False
+                self.is_game_active = False
 
         
     def run(self):
-        game.spawn_enemy()
 
         while self.runnig:            
             for event in pg.event.get():
@@ -84,20 +97,23 @@ class Game:
                     if event.key == pg.K_x:
                         self.player.toggle_shield()
 
-            self.all_enemies.update()
-            self.enemy_bullet_group.update()
-            self.player.update()
-            self.collide_manager()
+            if self.is_game_active:
+                self.all_enemies.update()
+                self.enemy_bullet_group.update()
+                self.player.update()
+                self.collide_manager()
+                self.spawn_enemy()
 
-            
+                
+                if self.player.rect.left < self.hud_area_w:
+                    self.player.rect.left = self.hud_area_w
+                if self.player.rect.right > self.win_w:
+                    self.player.rect.right = self.win_w
 
-            if self.player.rect.left < self.hud_area_w:
-                self.player.rect.left = self.hud_area_w
-            if self.player.rect.right > self.win_w:
-                self.player.rect.right = self.win_w
 
-            self.draw()
-            self.clock.tick(self.FPS)
+                self.draw()
+                self.clock.tick(self.FPS)
+                self.main_timer = pg.time.get_ticks() - self.start_game_time
 
 
 game = Game()
