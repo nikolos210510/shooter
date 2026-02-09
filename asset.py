@@ -1,4 +1,5 @@
 import pygame as pg
+from sprites import Bullet
 
 class Asset_manager:
     def __init__(self, filename):
@@ -16,7 +17,7 @@ class Asset_manager:
         self.data['shield'] = [self.get_image(2,i) for i in range(4)]
 
 class Player(pg.sprite.Sprite):
-    def __init__(self, x, y, assets_data):
+    def __init__(self, x, y, assets_data, bullet_group):
         super().__init__()
         
         self.assets = assets_data
@@ -24,6 +25,7 @@ class Player(pg.sprite.Sprite):
         self.shield_active = False
         self.shield_frame = 0
         self.health = 100
+        self.bullet_group = bullet_group
 
         self.speed = 8
         self.shield_speed = 0.2
@@ -43,6 +45,10 @@ class Player(pg.sprite.Sprite):
             shield_idx = int(self.shield_frame)
             shield_img = self.assets['shield'][shield_idx]
             self.image.blit(shield_img, (0, 0))
+
+    def normal_fire(self):
+        bullet = Bullet(self.rect.centerx, self.rect.bottom, 15, 30 ,20, 50, -1)
+        self.bullet_group.add(bullet)
 
     def update(self):
         keys = pg.key.get_pressed()

@@ -27,17 +27,19 @@ class Game:
         self.cur_weapon = 'Blaster'
         self.weapon_energy = 1.0
 
-        self.asset_manager = Asset_manager('player_sprite.png')
-        self.player = Player(self.win_w // 2, self.win_h - 300, self.asset_manager.data)
-
         self.all_enemies = pg.sprite.Group()
         self.enemy_bullet_group = pg.sprite.Group()
+        self.player_bullet_group = pg.sprite.Group()
 
         self.spawn_delay = 1000
-        self.last_summonig = pg.time.get_ticks()
+        self.last_generating = pg.time.get_ticks()
         self.start_game_time = pg.time.get_ticks()
         self.is_game_active = True
 
+        self.asset_manager = Asset_manager('player_sprite.png')
+        self.player = Player(self.win_w // 2, self.win_h - 300, self.asset_manager.data, self.player_bullet_group)
+    
+    
     def draw(self):
         pg.draw.rect(self.screen, (0, 0, 0), self.game_rect) 
         self.hud.draw(self.score, round(self.main_timer/1000, 2), self.ammo, self.cur_weapon, self.weapon_energy)
@@ -46,6 +48,7 @@ class Game:
         self.all_enemies.draw(self.screen)
         self.screen.blit(self.player.image, (self.player.rect.x, self.player.rect.y))
         self.enemy_bullet_group.draw(self.screen)
+        self.player_bullet_group.draw(self.screen)
 
         pg.display.flip()
 
@@ -57,16 +60,16 @@ class Game:
         elif 40 > chance >= 30:
             return Enemy('enemy5.png', 128, 128, self.enemy_spawn_area_x, -200, self.win_h, 2/3, 1.5, 2 )
         elif 70 > chance >= 40:
-            return Enemy('enemy6.png', 128, 128, self.enemy_spawn_area_x, -200, self.win_h, 1.5, 2/3, 2/3 )
+            return Enemy('enemy6.png', 128, 128, self.enemy_spawn_area_x, -200, self.win_h, 1.5, 0.5, 2/3 )
         elif 80 >= chance >= 70:
             return Enemy_Soldier('enemy2.png', 180, 180, self.win_w//2, 0, self.game_rect.right, self.game_rect.left, 2000, self.enemy_bullet_group)
 
     def spawn_enemy(self):
         now = pg.time.get_ticks()    
-        if now - self.last_summonig >= self.spawn_delay:
+        if now - self.last_generating >= self.spawn_delay:
             new_enemy = self.choose_enemy()
             self.all_enemies.add(new_enemy)
-            self.last_summonig = now
+            self.last_generating = now
 
     def collide_manager(self):
         collided_bullets = pg.sprite.spritecollide(self.player, self.enemy_bullet_group, True)
@@ -74,7 +77,6 @@ class Game:
             if collided_bullets:
                 for bullet in collided_bullets:                    
                     self.player.health -= bullet.dmg
-                    print(self.player.health)
                     if self.player.health <= 0:
                         print('death')
                         self.is_game_active = False
@@ -84,6 +86,14 @@ class Game:
                 self.player.shield_active = False
             else:
                 self.is_game_active = False
+
+        collided_dict = pg.sprite.groupcollide(self.player_bullet_group, self.all_enemies, True, False)
+        if collided_dict:
+            print(collided_dict)
+            for bullet in collided_dict:
+                for enemy in collided_dict[bullet]:
+                    enemy.health -= bullet.dmg
+        
 
         
     def run(self):
@@ -96,10 +106,14 @@ class Game:
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_x:
                         self.player.toggle_shield()
+                    if event.key == pg.K_c:
+                        self.player.normal_fire()
+                
 
             if self.is_game_active:
                 self.all_enemies.update()
                 self.enemy_bullet_group.update()
+                self.player_bullet_group.update()
                 self.player.update()
                 self.collide_manager()
                 self.spawn_enemy()

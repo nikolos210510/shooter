@@ -6,7 +6,9 @@ class Bullet(pg.sprite.Sprite):
         self.image = pg.Surface((width, height))
         if direction == -1:
             self.image = pg.transform.rotate(self.image, 180)
-        self.image.fill((255, 0, 0))
+            self.image.fill((0, 0, 255))
+        else:
+            self.image.fill((255, 0, 0))
         self.rect = self.image.get_rect(center = (x, y))
         self.speed = speed * direction
         self.dir = direction
@@ -17,4 +19,6 @@ class Bullet(pg.sprite.Sprite):
         self.rect.y += self.speed
         if self.rect.y >= 1350 or self.rect.y <= -50:
             self.kill()
+
+        
 
