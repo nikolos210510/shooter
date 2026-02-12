@@ -1,5 +1,5 @@
 import pygame as pg
-from sprites import Bullet
+from sprites import Bullet, Rocket
 
 class Asset_manager:
     def __init__(self, filename):
@@ -47,8 +47,12 @@ class Player(pg.sprite.Sprite):
             self.image.blit(shield_img, (0, 0))
 
     def normal_fire(self):
-        bullet = Bullet(self.rect.centerx, self.rect.bottom, 15, 30 ,20, 50, -1)
+        bullet = Bullet(self.rect.centerx, self.rect.bottom, 15, 30 ,20, 50, -1, (85, 97, 245))
         self.bullet_group.add(bullet)
+
+    def rocket_fire(self):
+        rocket = Rocket(self.rect.centerx, self.rect.bottom, 20, 40, 20, 100, -1, (255, 206, 70))
+        self.bullet_group.add(rocket)
 
     def update(self):
         keys = pg.key.get_pressed()

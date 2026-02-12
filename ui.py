@@ -9,13 +9,16 @@ class HUD:
         self.bg_color = (40, 40, 45)
         self.font_color = (255, 255, 255)
 
-    def draw(self, score, time, ammo, weapon_name, weapon_timer):
+    def draw(self, score, time, health, ammo, weapon_name, weapon_timer):
         self.surface.fill(self.bg_color)
 
-        score_img = self.font.render(f'SCORE:      {score}', True, self.font_color)
+        score_img = self.font.render(f'SCORE:   {score}', True, self.font_color)
         self.surface.blit(score_img, (20, 20))
 
-        time_img = self.font.render(f'Timer:      {time}', True, self.font_color)
+        time_img = self.font.render(f'TIME:   {time}', True, self.font_color)
         self.surface.blit(time_img, (20, 100))
+
+        health_img = self.font.render(f'HEALTH:   {health}', True, self.font_color)
+        self.surface.blit(health_img, (20, 180))
 
 

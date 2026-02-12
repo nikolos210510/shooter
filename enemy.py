@@ -3,7 +3,7 @@ from random import *
 from sprites import Bullet
 
 class Enemy(pg.sprite.Sprite):
-    def __init__(self, img, height, width, x, y, end, k_speed=1, k_health=1, k_size=1):
+    def __init__(self, img, height, width, x, y, end, k_speed=1, k_health=1, k_size=1, score=100):
         super().__init__()
         
         self.img = img
@@ -15,6 +15,7 @@ class Enemy(pg.sprite.Sprite):
         self.k_health = k_health
         self.k_size = k_size
         self.end = end
+        self.score = score
 
         self.base_health = 100
         self.base_speed = 3.5
@@ -27,7 +28,7 @@ class Enemy(pg.sprite.Sprite):
 
     def stats_init(self):
         self.speed = self.base_speed * self.k_speed
-        self.health = self.base_speed * self.k_health
+        self.health = self.base_health * self.k_health
 
     def sized_scale(self):
         self.image = pg.transform.scale(pg.image.load(self.img), (self.width*self.k_size, self.height*self.k_size))
@@ -40,24 +41,30 @@ class Enemy(pg.sprite.Sprite):
         if self.rect.y >= self.end:
             self.kill()
 
+        if self.health <= 0:
+            self.kill()
+
 
 
 
 class Enemy_Soldier(Enemy):
-    def __init__(self, img, height, width, x, y, start, end, delay, bullet_group):
-        super().__init__(img, height, width, x, y, end)
-        self.health = self.base_health * 3
-        self.armor_value = 1000
+    def __init__(self, img, height, width, x, y, start, end, delay, bullet_group, score):
+        super().__init__(img, height, width, x, y, end, score)
+        self.health = self.base_health * 2
+        self.armor_value = 500
         self.direction = choice(['right', 'left'])
         self.start = start
         self.end = end
         self.delay = delay
         self.last_shot_time = pg.time.get_ticks()
         self.bullet_group = bullet_group
+        self.common_bullet_speed = 10
+        self.common_bullet_damage = 34
+        self.score = score
         
 
     def fire(self):
-        bullet = Bullet(self.rect.centerx, self.rect.bottom, 10, 30 ,30, 34, 1)
+        bullet = Bullet(self.rect.centerx, self.rect.bottom, self.common_bullet_speed, 30 ,20, self.common_bullet_damage, 1, (0, 255, 0))
         self.bullet_group.add(bullet)
         
 
@@ -75,3 +82,22 @@ class Enemy_Soldier(Enemy):
         if now - self.last_shot_time >= self.delay:
             self.last_shot_time = now
             self.fire()
+
+        if self.health <= 0:
+            self.kill()
+            
+
+class Enemy_Elite(Enemy_Soldier):
+    def __init__(self, img, height, width, x, y, start, end, delay, bullet_group, score):
+        super().__init__(img, height, width, x, y, start, end, delay, bullet_group, score)
+        self.elite_health = self.health * 2
+        self.elite_armor = self.armor_value * 2
+        self.elite_bullet_speed = self.common_bullet_speed * 1.5
+        self.elite_bullet_damage = 50
+        self.score = score
+
+    def fire(self):
+        bullet = Bullet(self.rect.centerx, self.rect.bottom, self.elite_bullet_speed, 40 ,30, self.elite_bullet_damage, 1, (255, 0, 0))
+        self.bullet_group.add(bullet)
+
+    
