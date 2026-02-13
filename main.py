@@ -2,7 +2,7 @@ import pygame as pg
 from ui import HUD
 from asset import Asset_manager, Player
 from enemy import Enemy, Enemy_Soldier, Enemy_Elite
-from sprites import Bullet, Rocket
+from sprites import Bullet, Rocket, Effect_sprite
 from random import *
 
 
@@ -31,14 +31,13 @@ class Game:
         self.all_enemies = pg.sprite.Group()
         self.enemy_bullet_group = pg.sprite.Group()
         self.player_bullet_group = pg.sprite.Group()
+        self.effects_group = pg.sprite.Group()
 
         self.k_spawn = 1
         self.spawn_delay = 900
         self.last_generating = pg.time.get_ticks()
         self.start_game_time = pg.time.get_ticks()
         self.is_game_active = True
-
-        self.last_shot = pg.time.get_ticks()
 
         self.asset_manager = Asset_manager('player_sprite.png')
         self.player = Player(self.win_w // 2, self.win_h - 300, self.asset_manager.data, self.player_bullet_group)
@@ -53,6 +52,7 @@ class Game:
         self.screen.blit(self.player.image, (self.player.rect.x, self.player.rect.y))
         self.enemy_bullet_group.draw(self.screen)
         self.player_bullet_group.draw(self.screen)
+        self.effects_group.draw(self.screen)
 
         pg.display.flip()
 
@@ -97,12 +97,23 @@ class Game:
         if collided_dict:
             for bullet in collided_dict:
                 if isinstance(bullet, Rocket):
-                    bullet.explode()
+                    bullet.explode(self.effects_group)
                 for enemy in collided_dict[bullet]:
                     enemy.health -= bullet.dmg
                     if enemy.health <= 0:
                         self.score += enemy.score
                         self.spawn_manager()
+
+
+        collided_dict = pg.sprite.groupcollide(self.effects_group, self.all_enemies, False, False)
+        if collided_dict:
+            for effect in collided_dict:
+                for enemy in collided_dict[effect]:
+                    enemy.kill()
+                    self.score += enemy.score
+
+
+        
 
     def spawn_manager(self):
         if 5000 <= self.score < 10000:
@@ -110,13 +121,6 @@ class Game:
         elif 10000 <= self.score < 15000:
             self.k_spawn = 0.45
 
-    def fire_time_checker(self):
-        now = pg.time.get_ticks()
-        if now - self.last_shot >= 150:
-            self.last_shot = now
-            return True
-        else: 
-            return False
 
 
     def run(self):
@@ -129,9 +133,9 @@ class Game:
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_x:
                         self.player.toggle_shield()
-                    if event.key == pg.K_c and self.fire_time_checker():
+                    if event.key == pg.K_c and self.player.fire_time_checker():
                         self.player.normal_fire()
-                    if event.key == pg.K_v:
+                    if event.key == pg.K_v and self.player.fire_time_checker():
                         self.player.rocket_fire()
                 
 
@@ -139,6 +143,7 @@ class Game:
                 self.all_enemies.update()
                 self.enemy_bullet_group.update()
                 self.player_bullet_group.update()
+                self.effects_group.update()
                 self.player.update()
                 self.collide_manager()
                 self.spawn_enemy()

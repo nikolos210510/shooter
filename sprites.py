@@ -25,17 +25,29 @@ class Rocket(Bullet):
         super().__init__(x, y, speed, height, width, damage, direction, color)
         self.image.fill(color)
 
-
-
-    def explode(self):
-        self.image = pg.Surface((self.rect.height, self.rect.height))
-        self.update = self.exp_update
-        print('привет артур')
-
-    def exp_update(self):
-        pg.draw.circle(self.image, (255, 0, 0), (self.rect.x, self.rect.y), self.rect.height//2)
-    
+    def explode(self, effects_group):
+        explosion = Effect_sprite('explosion.png', self.rect.centerx, self.rect.centery, max(self.rect.width, self.rect.height))
+        effects_group.add(explosion)
         
 
+class Effect_sprite(pg.sprite.Sprite):
+    def __init__(self, img, x, y, size):
+        super().__init__()
+        self.size = size   
+        self.original_image = pg.image.load(img).convert_alpha()    
+        self.image = pg.transform.scale(self.original_image, (self.size, self.size))
+        self.rect = self.image.get_rect(center =(x, y))
+        self.k_grow = 1
+        
+
+    def update(self):
+        self.size += self.k_grow
+        center = self.rect.center
+        self.image = pg.transform.scale(self.original_image, (self.size, self.size))
+        self.rect = self.image.get_rect(center = center)
+
+        if self.size >= 400:
+            self.kill()
 
 
+        

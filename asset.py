@@ -32,6 +32,8 @@ class Player(pg.sprite.Sprite):
         self.image = pg.Surface((128, 128), pg.SRCALPHA)
         self.rect = self.image.get_rect(center = (x, y))
 
+        self.last_shot = pg.time.get_ticks()
+
     def build_image(self):
         self.image.fill((0, 0, 0, 0))
 
@@ -53,6 +55,14 @@ class Player(pg.sprite.Sprite):
     def rocket_fire(self):
         rocket = Rocket(self.rect.centerx, self.rect.bottom, 20, 40, 20, 100, -1, (255, 206, 70))
         self.bullet_group.add(rocket)
+
+    def fire_time_checker(self):
+        now = pg.time.get_ticks()
+        if now - self.last_shot >= 150:
+            self.last_shot = now
+            return True
+        else: 
+            return False
 
     def update(self):
         keys = pg.key.get_pressed()
