@@ -100,4 +100,42 @@ class Enemy_Elite(Enemy_Soldier):
         bullet = Bullet(self.rect.centerx, self.rect.bottom, self.elite_bullet_speed, 40 ,30, self.elite_bullet_damage, 1, (255, 0, 0))
         self.bullet_group.add(bullet)
 
+
+class Loot_ship(Enemy):
+    def __init__(self, img, height, width, x, y, end, k_speed=1, k_health=1, k_size=1, score=100):
+        super().__init__(img, height, width, x, y, end, k_speed, k_health, k_size, score)
+        self.loot_type = None
+
+
+    def loot_generate(self):
+            rn = randint(1,10)
+            if rn <= 4:
+                self.loot_type = 'speed_boost'
+                cur_loot = Loot('block1.png', self.rect.centerx, self.rect.centery, 128, 5, self.loot_type)
+                
+            elif 4 < rn <=7:
+                self.loot_type = 'shield'
+                cur_loot = Loot('block2.png', self.rect.centerx, self.rect.centery, 128, 5, self.loot_type)
+            elif 7 < rn <= 10:
+                self.loot_type = 'rocket'
+                cur_loot = Loot('block3.png', self.rect.centerx, self.rect.centery, 150, 5, self.loot_type)
+            return cur_loot 
+
+            
+            
+class Loot(pg.sprite.Sprite):
+    def __init__(self, img, x, y, size, speed, l_type):
+        super().__init__()
+        self.image = pg.transform.scale(pg.image.load(img),(size, size))
+        self.rect = self.image.get_rect(center=(x,y))
+        self.speed = speed
+        self.loot_type = l_type
+
+    def update(self):
+        self.rect.y += self.speed
+        if self.rect.y >= 1300:
+            self.kill()
+        
+
+
     
