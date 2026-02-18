@@ -26,14 +26,17 @@ class Rocket(Bullet):
         self.image.fill(color)
 
     def explode(self, effects_group):
-        explosion = Effect_sprite('explosion.png', self.rect.centerx, self.rect.centery, max(self.rect.width, self.rect.height))
+        explosion = Effect_sprite('explosion.png', self.rect.centerx, self.rect.centery, self.rect.width, self.rect.height)
         effects_group.add(explosion)
         
 
 class Effect_sprite(pg.sprite.Sprite):
-    def __init__(self, img, x, y, size):
+    def __init__(self, img, x, y, width, height):
         super().__init__()
-        self.size = size   
+        self.height = height
+        self.width = width
+
+        self.size = width   
         self.original_image = pg.image.load(img).convert_alpha()    
         self.image = pg.transform.scale(self.original_image, (self.size, self.size))
         self.rect = self.image.get_rect(center =(x, y))
@@ -42,12 +45,34 @@ class Effect_sprite(pg.sprite.Sprite):
 
     def update(self):
         self.size += self.k_grow
+
         center = self.rect.center
         self.image = pg.transform.scale(self.original_image, (self.size, self.size))
         self.rect = self.image.get_rect(center = center)
 
         if self.size >= 400:
             self.kill()
+
+
+class Laser(Effect_sprite):
+    def __init__(self, img, x, y, width, height):
+        super().__init__(img, x, y, width, height)
+        self.k_grow = 10
+        self.y = y
+        
+    def update(self):
+        self.height += self.k_grow
+
+        center = self.rect.center
+        self.image = pg.transform.scale(self.original_image, (self.width, self.height))
+        self.rect = self.image.get_rect(center = center)
+        self.rect.bottom = self.y
+
+        if self.rect.top <= -100:
+            self.kill()
+
+
+
 
 
         

@@ -24,10 +24,6 @@ class Game:
         self.main_timer = 0
         self.score = 0
 
-        self.ammo = 30
-        self.cur_weapon = 'Blaster'
-        self.weapon_energy = 1.0
-
         self.all_enemies = pg.sprite.Group()
         self.enemy_bullet_group = pg.sprite.Group()
         self.player_bullet_group = pg.sprite.Group()
@@ -50,7 +46,7 @@ class Game:
     
     def draw(self):
         pg.draw.rect(self.screen, (0, 0, 0), self.game_rect) 
-        self.hud.draw(self.score, round(self.main_timer/1000, 2), self.player.health, self.ammo, self.cur_weapon, self.weapon_energy)
+        self.hud.draw(self.score, round(self.main_timer/1000, 2), self.player.health, self.player.rocket_amount, self.player.laser_amount)
         self.screen.blit(self.hud.surface, (0, 0))
 
         self.all_enemies.draw(self.screen)
@@ -131,10 +127,14 @@ class Game:
                 if boost.loot_type == 'shield':
                     self.last_shield = pg.time.get_ticks()
                     self.player.shield_active = True
-                elif boost.loot_type  == 'speed_boost':
-                    self.player.speed *= 1.5  
+                elif boost.loot_type  == 'speed_boost':                             
+                    if not self.is_boosted: self.player.speed *= 1.5  
                     self.last_speed = pg.time.get_ticks()
                     self.is_boosted = True
+                elif boost.loot_type == 'rocket':
+                    self.player.rocket_amount += 3              #иногда засчитыввает 2 раза
+                elif boost.loot_type == 'laser':
+                    self.player.laser_amount += 3              #иногда засчитыввает 2 раза
                     
 
 
@@ -163,6 +163,8 @@ class Game:
                         self.player.normal_fire()
                     if event.key == pg.K_v and self.player.fire_time_checker():
                         self.player.rocket_fire()
+                    if event.key == pg.K_z and self.player.fire_time_checker():
+                        self.player.laser_fire(self.effects_group)
                 
 
             if self.is_game_active:

@@ -1,5 +1,5 @@
 import pygame as pg
-from sprites import Bullet, Rocket
+from sprites import Bullet, Rocket, Laser
 
 class Asset_manager:
     def __init__(self, filename):
@@ -34,6 +34,9 @@ class Player(pg.sprite.Sprite):
 
         self.last_shot = pg.time.get_ticks()
 
+        self.rocket_amount = 0
+        self.laser_amount = 0
+
     def build_image(self):
         self.image.fill((0, 0, 0, 0))
 
@@ -49,12 +52,21 @@ class Player(pg.sprite.Sprite):
             self.image.blit(shield_img, (0, 0))
 
     def normal_fire(self):
-        bullet = Bullet(self.rect.centerx, self.rect.bottom, 15, 30 ,20, 50, -1, (85, 97, 245))
+        bullet = Bullet(self.rect.centerx, self.rect.top, 15, 30 ,20, 50, -1, (85, 97, 245))
         self.bullet_group.add(bullet)
 
     def rocket_fire(self):
-        rocket = Rocket(self.rect.centerx, self.rect.bottom, 20, 40, 20, 100, -1, (255, 206, 70))
+        #if self.rocket_amount > 0:
+        rocket = Rocket(self.rect.centerx, self.rect.top, 20, 40, 20, 100, -1, (255, 206, 70))
         self.bullet_group.add(rocket)
+        self.rocket_amount -= 1
+
+    def laser_fire(self, effects_group):
+        #if self.laser_amount > 0:
+        laser = Laser('red.png',self.rect.centerx, self.rect.top, 10, 5)
+        effects_group.add(laser)
+        self.laser_amount -= 1
+
 
     def fire_time_checker(self):
         now = pg.time.get_ticks()
