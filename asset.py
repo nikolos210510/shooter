@@ -1,5 +1,6 @@
 import pygame as pg
 from sprites import Bullet, Rocket, Laser
+pg.mixer.init()
 
 class Asset_manager:
     def __init__(self, filename):
@@ -19,6 +20,10 @@ class Asset_manager:
 class Player(pg.sprite.Sprite):
     def __init__(self, x, y, assets_data, bullet_group):
         super().__init__()
+
+        self.shoot_sd = pg.mixer.Sound('shoot_sd.wav')
+        self.laser_sd = pg.mixer.Sound('laser_sd.wav')
+        self.rocket_sd = pg.mixer.Sound('rocket_sd.wav')
         
         self.assets = assets_data
         self.state_idx = 1
@@ -54,18 +59,21 @@ class Player(pg.sprite.Sprite):
     def normal_fire(self):
         bullet = Bullet(self.rect.centerx, self.rect.top, 15, 30 ,20, 50, -1, (85, 97, 245))
         self.bullet_group.add(bullet)
+        self.shoot_sd.play()
 
     def rocket_fire(self):
         #if self.rocket_amount > 0:
         rocket = Rocket(self.rect.centerx, self.rect.top, 20, 40, 20, 100, -1, (255, 206, 70))
         self.bullet_group.add(rocket)
         self.rocket_amount -= 1
+        self.rocket_sd.play()
 
     def laser_fire(self, effects_group):
         #if self.laser_amount > 0:
         laser = Laser('red.png',self.rect.centerx, self.rect.top, 10, 5)
         effects_group.add(laser)
         self.laser_amount -= 1
+        self.laser_sd.play()
 
 
     def fire_time_checker(self):

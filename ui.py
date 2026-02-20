@@ -22,9 +22,9 @@ class HUD:
         self.surface.blit(health_img, (20, 180))
 
         rocket_ammo_img = self.font.render(f'ROCKETS:   {rocket_ammo}', True, self.font_color)
-        self.surface.blit(rocket_ammo_img, (20, 260))
+        self.surface.blit(rocket_ammo_img, (20, 1060))
 
         laser_ammo_img = self.font.render(f'LASER:   {laser_ammo}', True, self.font_color)
-        self.surface.blit(laser_ammo_img, (20, 340))
+        self.surface.blit(laser_ammo_img, (20, 1140))
 
 
