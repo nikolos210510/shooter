@@ -4,6 +4,7 @@ from asset import Asset_manager, Player
 from enemy import Enemy, Enemy_Soldier, Enemy_Elite, Loot, Loot_ship
 from sprites import Bullet, Rocket, Effect_sprite
 from random import *
+pg.mixer.init()
 
 
 
@@ -38,9 +39,11 @@ class Game:
 
         self.asset_manager = Asset_manager('player_sprite.png')
         self.player = Player(self.win_w // 2, self.win_h - 300, self.asset_manager.data, self.player_bullet_group)
-        self.last_speed = 100000
-        self.last_shield = 100000
+        self.last_speed = 0
+        self.last_shield = 0
         self.is_boosted = False
+        self.hit_sd = pg.mixer.Sound('hit_sd.wav')
+        pg.mixer.music.load('main.wav')
 
 
     
@@ -69,9 +72,9 @@ class Game:
             return Enemy('enemy6.png', 128, 128, self.enemy_spawn_area_x, -200, self.win_h, 1.5, 0.5, 2/3, 250)
         elif 95 >= chance >= 80:
             return Enemy_Soldier('elite_2.png', 150, 150, self.win_w//2, 50, self.game_rect.right, self.game_rect.left, 2000, self.enemy_bullet_group, 500)
-        elif 100 >= chance > 95:
+        elif 105 >= chance > 95:
             return Enemy_Elite('enemy2.png', 180, 180, self.win_w//2, 0, self.game_rect.right, self.game_rect.left, 1500, self.enemy_bullet_group, 1000)
-        elif  120 >= chance > 100:
+        elif  120 >= chance > 105:
             return Loot_ship('box.png', 128, 128, self.enemy_spawn_area_x, -200, self.win_h)
         
 
@@ -88,15 +91,22 @@ class Game:
             if collided_bullets:
                 for bullet in collided_bullets:                    
                     self.player.health -= bullet.dmg
+                    self.hit_sd.play()
                     if self.player.health <= 0:
-                        print('death')
                         self.is_game_active = False
 
-        if pg.sprite.spritecollide(self.player, self.all_enemies, True):
+        collided_enemies = pg.sprite.spritecollide(self.player, self.all_enemies, True)
+        if collided_enemies:
             if self.player.shield_active:
                 self.player.shield_active = False
             else:
-                self.is_game_active = False
+                for enemy in collided_enemies:
+                    if enemy.k_size == 2:
+                        self.player.health -= 100
+                    else:
+                        self.player.health -=  50
+                    if self.player.health <= 0:
+                        self.is_game_active = False
 
         collided_dict = pg.sprite.groupcollide(self.player_bullet_group, self.all_enemies, True, False)
         if collided_dict:
@@ -150,6 +160,9 @@ class Game:
 
 
     def run(self):
+        
+        pg.mixer.music.play()
+
 
         while self.runnig:            
             for event in pg.event.get():
@@ -157,13 +170,13 @@ class Game:
                     self.runnig = False
 
                 if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_x:
-                        self.player.toggle_shield()
+                    ''' if event.key == pg.K_x:
+                        self.player.toggle_shield()'''
                     if event.key == pg.K_c and self.player.fire_time_checker():
                         self.player.normal_fire()
                     if event.key == pg.K_v and self.player.fire_time_checker():
                         self.player.rocket_fire()
-                    if event.key == pg.K_z and self.player.fire_time_checker():
+                    if event.key == pg.K_x and self.player.fire_time_checker():
                         self.player.laser_fire(self.effects_group)
                 
 
@@ -188,14 +201,18 @@ class Game:
                 self.clock.tick(self.FPS)
 
                 self.main_timer = pg.time.get_ticks() - self.start_game_time
-                if pg.time.get_ticks() - self.last_speed >= 10000 and self.is_boosted:
-                    print('салам')
-                    self.player.speed *= 3/4
-                    self.is_boosted = False
 
-                if pg.time.get_ticks() - self.last_shield >= 10000 and self.player.shield_active:
-                    print('салам')
-                    self.player.shield_active = False
+                if self.is_boosted: 
+                    if pg.time.get_ticks() - self.last_speed >= 10000:
+                        self.player.speed *= 3/4
+                        self.is_boosted = False
+
+                if self.player.shield_active:
+                    if pg.time.get_ticks() - self.last_shield >= 10000:
+                        self.player.shield_active = False
+
+                if not self.is_game_active: 
+                    pg.mixer.music.stop()
 
 
 
