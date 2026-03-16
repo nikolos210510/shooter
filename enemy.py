@@ -108,11 +108,10 @@ class Loot_ship(Enemy):
 
 
     def loot_generate(self):
-            rn = randint(1,13)
+            rn = randint(1,16)
             if rn <= 4:
                 self.loot_type = 'speed_boost'
-                cur_loot = Loot('block1.png', self.rect.centerx, self.rect.centery, 128, 5, self.loot_type)
-                
+                cur_loot = Loot('block1.png', self.rect.centerx, self.rect.centery, 128, 5, self.loot_type)                
             elif 4 < rn <=7:
                 self.loot_type = 'shield'
                 cur_loot = Loot('block2.png', self.rect.centerx, self.rect.centery, 128, 5, self.loot_type)
@@ -121,6 +120,9 @@ class Loot_ship(Enemy):
                 cur_loot = Loot('block3.png', self.rect.centerx, self.rect.centery, 128, 5, self.loot_type)
             elif 10 < rn <= 13:
                 self.loot_type = 'laser'
+                cur_loot = Loot('block3.png', self.rect.centerx, self.rect.centery, 128, 5, self.loot_type)
+            elif 13 < rn <= 16:
+                self.loot_type = 'poison'
                 cur_loot = Loot('block3.png', self.rect.centerx, self.rect.centery, 128, 5, self.loot_type)
             return cur_loot 
 

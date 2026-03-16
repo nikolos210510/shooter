@@ -9,7 +9,7 @@ class HUD:
         self.bg_color = (40, 40, 45)
         self.font_color = (255, 255, 255)
 
-    def draw(self, score, time, health, rocket_ammo, laser_ammo):
+    def draw(self, score, time, health, rocket_ammo, laser_ammo, poison_ammo):
         self.surface.fill(self.bg_color)
 
         score_img = self.font.render(f'SCORE:   {score}', True, self.font_color)
@@ -26,5 +26,8 @@ class HUD:
 
         laser_ammo_img = self.font.render(f'LASER:   {laser_ammo}', True, self.font_color)
         self.surface.blit(laser_ammo_img, (20, 1140))
+
+        poison_ammo_img = self.font.render(f'POISON:   {poison_ammo}', True, self.font_color)
+        self.surface.blit(poison_ammo_img, (20, 1220))
 
 

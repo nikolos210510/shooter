@@ -1,5 +1,5 @@
 import pygame as pg
-from sprites import Bullet, Rocket, Laser
+from sprites import Bullet, Rocket, Laser, Poison_rocket
 pg.mixer.init()
 
 class Asset_manager:
@@ -41,6 +41,7 @@ class Player(pg.sprite.Sprite):
 
         self.rocket_amount = 0
         self.laser_amount = 0
+        self.poison_amount = 0
 
     def build_image(self):
         self.image.fill((0, 0, 0, 0))
@@ -57,7 +58,7 @@ class Player(pg.sprite.Sprite):
             self.image.blit(shield_img, (0, 0))
 
     def normal_fire(self):
-        bullet = Bullet(self.rect.centerx, self.rect.top, 15, 30 ,20, 50, -1, (85, 97, 245))
+        bullet = Bullet(self.rect.centerx, self.rect.top, 15, 100 ,20, 50, -1, (85, 97, 245))
         self.bullet_group.add(bullet)
         self.shoot_sd.play()
 
@@ -68,9 +69,17 @@ class Player(pg.sprite.Sprite):
         self.rocket_amount -= 1
         self.rocket_sd.play()
 
+    def poison_fire(self):
+        #if self.poison_amount > 0:
+        poison = Poison_rocket(self.rect.centerx, self.rect.top, 20, 40, 20, 100, -1, (40, 255, 40))
+        self.bullet_group.add(poison)
+        self.poison_amount -= 1
+        self.rocket_sd.play()
+
+
     def laser_fire(self, effects_group):
         #if self.laser_amount > 0:
-        laser = Laser('red.png',self.rect.centerx, self.rect.top, 10, 5)
+        laser = Laser('red.png',self.rect.centerx, self.rect.top, 10, 5, 'kind')
         effects_group.add(laser)
         self.laser_amount -= 1
         self.laser_sd.play()

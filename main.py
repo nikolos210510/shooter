@@ -2,7 +2,7 @@ import pygame as pg
 from ui import HUD
 from asset import Asset_manager, Player
 from enemy import Enemy, Enemy_Soldier, Enemy_Elite, Loot, Loot_ship
-from sprites import Bullet, Rocket, Effect_sprite
+from sprites import Bullet, Rocket, Effect_sprite, Poison_rocket
 from random import *
 pg.mixer.init()
 
@@ -49,16 +49,15 @@ class Game:
     
     def draw(self):
         pg.draw.rect(self.screen, (0, 0, 0), self.game_rect) 
-        self.hud.draw(self.score, round(self.main_timer/1000, 2), self.player.health, self.player.rocket_amount, self.player.laser_amount)
+        self.hud.draw(self.score, round(self.main_timer/1000, 2), self.player.health, self.player.rocket_amount, self.player.laser_amount, self.player.poison_amount)
         self.screen.blit(self.hud.surface, (0, 0))
 
-        self.all_enemies.draw(self.screen)
         self.allloot_group.draw(self.screen)
         self.screen.blit(self.player.image, (self.player.rect.x, self.player.rect.y))
         self.enemy_bullet_group.draw(self.screen)
         self.player_bullet_group.draw(self.screen)
         self.effects_group.draw(self.screen)
-
+        self.all_enemies.draw(self.screen)
         pg.display.flip()
 
     def choose_enemy(self):
@@ -113,23 +112,34 @@ class Game:
             for bullet in collided_dict:
                 if isinstance(bullet, Rocket):
                     bullet.explode(self.effects_group)
+                elif isinstance(bullet, Poison_rocket):
+                    bullet.poison(self.effects_group)
                 for enemy in collided_dict[bullet]:
-                    enemy.health -= bullet.dmg
+                    if isinstance(bullet, Poison_rocket):
+                        enemy.health -= bullet.poison_dmg
+                    else:
+                        enemy.health -= bullet.dmg
                     if enemy.health <= 0:
                         if isinstance(enemy, Loot_ship):
                             self.allloot_group.add(enemy.loot_generate())
                         self.score += enemy.score
                         self.spawn_manager()
+                        print(enemy.health)
 
 
         collided_dict = pg.sprite.groupcollide(self.effects_group, self.all_enemies, False, False)
         if collided_dict:
             for effect in collided_dict:
                 for enemy in collided_dict[effect]:
-                    enemy.kill()
-                    if isinstance(enemy, Loot_ship):
-                            self.allloot_group.add(enemy.loot_generate())
-                    self.score += enemy.score
+                    if effect.kind == 'area': 
+                        enemy.health -= 0.83
+                    else:
+                        enemy.health = 0
+                        enemy.kill()                #глушка
+                    if enemy.health <= 0:                        
+                        if isinstance(enemy, Loot_ship):
+                                self.allloot_group.add(enemy.loot_generate())
+                        self.score += enemy.score
 
         collided_boosts = pg.sprite.spritecollide(self.player, self.allloot_group, True)
         if collided_boosts:
@@ -142,9 +152,11 @@ class Game:
                     self.last_speed = pg.time.get_ticks()
                     self.is_boosted = True
                 elif boost.loot_type == 'rocket':
-                    self.player.rocket_amount += 3              #иногда засчитыввает 2 раза
+                    self.player.rocket_amount += 3              
                 elif boost.loot_type == 'laser':
-                    self.player.laser_amount += 3              #иногда засчитыввает 2 раза
+                    self.player.laser_amount += 3              
+                elif boost.loot_type == 'poison':
+                    self.player.poison_amount += 3              
                     
 
 
@@ -178,15 +190,17 @@ class Game:
                         self.player.rocket_fire()
                     if event.key == pg.K_x and self.player.fire_time_checker():
                         self.player.laser_fire(self.effects_group)
+                    if event.key == pg.K_z and self.player.fire_time_checker():
+                        self.player.poison_fire()
                 
 
-            if self.is_game_active:
-                self.all_enemies.update()
+            if self.is_game_active:                
                 self.enemy_bullet_group.update()
                 self.player_bullet_group.update()
                 self.effects_group.update()
                 self.player.update()
                 self.allloot_group.update()
+                self.all_enemies.update()
                 self.collide_manager()
                 self.spawn_enemy()
 
